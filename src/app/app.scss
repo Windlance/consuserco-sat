@@ -1,0 +1,181 @@
+// http://ionicframework.com/docs/theming/
+
+
+// App Global Sass
+// --------------------------------------------------
+// Put style rules here that you want to apply globally. These
+// styles are for the entire app and not just one component.
+// Additionally, this file can be also used as an entry point
+// to import other Sass files to be included in the output CSS.
+//
+// Shared Sass variables, which can be used to adjust Ionic's
+// default Sass variables, belong in "theme/variables.scss".
+//
+// To declare rules for a specific mode, create a child rule
+// for the .md, .ios, or .wp mode classes. The mode class is
+// automatically applied to the <body> element in the app.
+
+.toolbar {
+    .toolbar-background { background: color($colors, blue); };
+    .toolbar-title {color: color($colors, light);}
+    button, button:hover:not(.disable-hover) { color: color($colors, light) }
+    ion-buttons[end] ion-icon { font-size: 30px; }
+}
+
+.button { font-weight: normal; }
+
+.border             { border:1px solid color($colors, border); }
+.border-top	        { border-top:1px solid color($colors, border); }
+.border-left	      { border-left:1px solid color($colors, border); }
+.border-right	      { border-right:1px solid color($colors, border); }
+.border-bottom	    { border-bottom:1px solid color($colors, border); }
+.border-vertical	  { border-top:1px solid color($colors, border); border-bottom:1px solid color($colors, border);}
+.border-horizontal	{ border-left:1px solid color($colors, border); border-right:1px solid color($colors, border);}
+.no-border          { border: 0 }
+
+.d-none { display: none !important; }
+
+#appTabs .tabbar {
+    color: color($colors, blue);
+    background: color($colors, blue);
+    a.tab-button:hover {opacity: 1}
+    a.tab-button {
+      color: color($colors,tabInactive);
+      .tab-button-icon {
+        color: color($colors,tabInactive);
+      }
+    }
+    a.tab-button[aria-selected=true] {
+      color: color($colors,light);
+      .tab-button-icon {
+        color: color($colors,light);
+        -webkit-transform: none;
+        transform: none;
+      };
+      .tab-button-text {
+        -webkit-transform: none;
+        transform: none;
+        -webkit-transition: none;
+        transition: none;
+      }
+    }
+  }
+
+  .button-group {
+    ion-col {
+        button { height: 36px; font-size: 14px; font-weight: normal; border-radius: 4px; }
+        button.selected { background: color($colors, blue); color: color($colors, light);}
+        &:first-child:not(:last-child) {
+            padding-right: 0;
+            .button {
+                border-right-width: 0;
+                border-top-right-radius: 0;
+                border-bottom-right-radius: 0;
+            }
+        }
+        &:not(:first-child):not(:last-child) {
+            padding-right: 0;
+            padding-left: 0;
+            .button {
+                border-right-width: 0;
+                border-radius: 0;
+            }
+        }
+        &:last-child:not(:first-child) {
+            padding-left: 0;
+            .button {
+                border-top-left-radius: 0;
+                border-bottom-left-radius: 0;
+            }
+        }
+    }
+}
+
+.incidenciaTipos { 
+  font-size: 12px; color: color($colors, gris); margin-top:8px;
+  ion-col { 
+      padding: 0; 
+      ion-icon {
+          font-size:24px; padding-right: 8px;
+      }
+      ion-icon.ion-ios-checkbox { color: color($colors, blue); }
+      span { line-height: 24px; vertical-align: bottom; }
+  }
+}
+
+.incidencia {
+  .establecimiento {
+    font-size: 16px; font-weight: normal; color: color($colors, dark);  line-height: 24px;
+  }
+  .maquina {
+    font-size: 12px; color: color($colors, gris);
+  }
+  .direccion {
+    font-size: 12px; color: color($colors, gris); line-height: 18px;
+  }
+  .horario {
+    font-size: 12px; color: color($colors, gris); margin-top:10px; 
+  }
+  .descripcion {
+    font-size: 14px; text-align: justify; line-height: 16px; color: color($colors, gris); width: auto; font-weight: 300;
+  }
+}
+
+ion-toast {
+  .toast-wrapper {
+    background-color: #030303;
+    .toast-container { 
+      .toast-message { color: #fff; padding: 17px 16px 20px 42px; }
+      button.toast-button { color: #fff; }
+    }
+  }
+}
+
+.toast-container:before {
+  display: inline-block;
+  position: absolute;
+  top: 13px; 
+  left: 12px;
+  font-family: "Ionicons";
+  speak: none;
+  font-style: normal;
+  font-size: 24px;
+  color: #FFF;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  text-rendering: auto;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+ion-toast.error {
+  .toast-wrapper { background: #bd362f; }
+  .toast-container:before {  content: "\f2bf"; }
+}
+
+ion-toast.warning {
+  .toast-wrapper { background: #f89406; }
+  .toast-container:before {  content: "\f3a5"; }
+}
+
+ion-toast.info {
+  .toast-wrapper { background: #2f96b4; }
+  .toast-container:before {  content: "\f311"; }
+}
+
+ion-toast.success {
+  .toast-wrapper { background: #51a351; }
+  .toast-container:before { content: "\f2bb"; }
+}
+
+.focus-outline :focus {
+  outline-style: none;
+}
+
+.action-sheet-ios .action-sheet-title { font-size: 1.5rem; }
+.action-sheet-md {
+  .action-sheet-container { padding-top: 0 }
+  .action-sheet-title { padding: 16px; background: color($colors, blue); color: color($colors, light); }
+}

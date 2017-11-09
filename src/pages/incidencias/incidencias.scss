@@ -1,0 +1,24 @@
+page-incidencias {
+    .incidenciaHeader {
+        font-size: 14px; 
+        ion-label {
+            ion-icon { padding-right: 8px; font-size: 24px; vertical-align: bottom; }
+            span { line-height: 24px;  display: inline-flex; }
+        }
+    }
+    ion-item-sliding {
+        button.item-ios:not([detail-none]) .item-inner { background-position: right 16px top 16px; }
+    }
+    ion-list ion-item-group:not(:last-child) ion-item-sliding:last-child .item-inner { border:0 }
+    .sinIncidencias {
+        ion-item.item-block {
+            border-top:1px solid #dedede;  border-bottom:1px solid #dedede; padding:0;
+            .item-inner { 
+                border: 0; padding-right: 16px;
+                ion-label { 
+                    text-align: center; font-size: 16px; font-weight: 100;  line-height: 173px; margin: 0;
+                }
+            }
+        }
+    } 
+}

@@ -1,0 +1,60 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Cerrar Incidencia</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content class="incidencia">
+  <div padding class="border-bottom">
+    <p class="numeracion" text-center no-margin>{{numeracion}}</p>
+    <p class="establecimiento" text-center no-margin>{{establecimiento}}</p>
+    <p class="maquina" text-center no-margin>{{fabricante}} {{modelo}}</p>
+  </div>
+
+  <ion-slides #signupSlider initialSlide=0>
+
+    <ion-slide>
+      <ion-list no-margin>
+        <form [formGroup]="slideOneForm">
+          <ion-item padding-horizontal>
+            <ion-label stacked>Observaciones de Cierre</ion-label>
+            <ion-textarea formControlName="observaciones" rows="4"></ion-textarea>
+          </ion-item>
+          <ion-item padding-horizontal>
+            <ion-label stacked>Pendiente de Revisión</ion-label>
+            <ion-toggle formControlName="revision" color="success"></ion-toggle>
+          </ion-item>
+          <ion-item padding-horizontal [class.invalido]="!slideOneForm.controls.email.valid && (aFirmarAttempt || aCerrarIncidenciaAttempt)">
+            <ion-label stacked>Email para resguardo</ion-label>
+            <ion-input formControlName="email" type="email"></ion-input>
+            <ion-label class="form-error" *ngIf="!slideOneForm.controls.email.valid && (aFirmarAttempt || aCerrarIncidenciaAttempt)">
+              No válido
+            </ion-label>
+          </ion-item>
+          <div padding>
+            <button ion-button block outline color="danger" (click)="aFirmar()">Cerrar Incidencia</button>
+          </div>
+        </form>
+      </ion-list>
+    </ion-slide>
+
+    <ion-slide>
+      <form [formGroup]="slideTwoForm">
+        <div padding-horizontal [class.invalido]="!signatureImage && aCerrarIncidenciaAttempt">
+          <ion-icon name="close-circle" (click)="drawClear()" *ngIf="signatureImage" id="clearSignature"></ion-icon>
+          <ion-label stacked text-left class="firma">Firma</ion-label>
+          <signature-pad [options]="signaturePadOptions"  id="signatureCanvas" (onBeginEvent)="drawStart()" (onEndEvent)="drawComplete()"></signature-pad>
+          <ion-label class="form-error" *ngIf="!signatureImage && aCerrarIncidenciaAttempt">Obligatorio</ion-label>
+        </div>
+      </form>
+      <div padding>
+        <button ion-button block outline color="danger" (click)="cerrarIncidencia()">Firmar</button>
+      </div>
+    </ion-slide>
+
+  </ion-slides>
+
+</ion-content>

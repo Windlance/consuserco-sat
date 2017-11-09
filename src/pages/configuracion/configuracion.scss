@@ -1,0 +1,14 @@
+page-configuracion {
+    ion-avatar img.userAvatar {
+        width: 60px; 
+        height: 60px;
+    }
+    .item-block {
+        .item-button {
+            width: 25px; 
+            ion-icon { font-size: 16px; }
+            ion-icon.help { font-size: 32px; }
+        }
+    }
+    ion-list.last { margin: -1px 0 12px;}
+}

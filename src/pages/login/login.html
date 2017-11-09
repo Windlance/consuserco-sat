@@ -1,0 +1,22 @@
+<ion-content padding>
+
+  <ion-list>
+    <ion-item>
+      <ion-label stacked>Email</ion-label>
+      <ion-input type="text" [(ngModel)]="userData.email"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label stacked>Contraseña</ion-label>
+      <ion-input type="password" [(ngModel)]="userData.password"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <ion-row>
+    <ion-col text-center>
+        <button ion-button center (click)="login()">Entrar</button>
+        <p>&copy; Copyright 2017, Consuserco</p>
+    </ion-col>  
+  </ion-row>
+
+</ion-content>

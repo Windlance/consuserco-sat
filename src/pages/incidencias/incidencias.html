@@ -1,0 +1,88 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Incidencias</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content>
+
+  <ion-grid class="button-group" padding>
+    <ion-row>
+      <ion-col>
+        <button ion-button block outline small [class.selected]="showPendientes" [class.disable-hover]="showPendientes" (click)="mostrarPendientes()">PENDIENTES</button>
+      </ion-col>
+      <ion-col>
+        <button ion-button block outline small [class.selected]="!showPendientes" [class.disable-hover]="!showPendientes" (click)="mostrarCerradas()">CERRADAS</button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-list *ngIf="showPendientes" id="incidenciasAbiertas">
+    <div *ngIf="sinAbiertas" class="sinIncidencias">
+      <ion-item>
+        - Sin incidencias abiertas -
+      </ion-item>
+    </div>
+    <div *ngIf="conAbiertas">
+      <ion-item-group *ngFor="let prioridad of prioridades">
+        <ion-item-divider color="{{prioridad.color}}" class="incidenciaHeader" *ngIf="prioridad.incidencias.length" >
+          <ion-icon ios='{{prioridad.icon.ios}}' md='{{prioridad.icon.md}}'></ion-icon> <span>PRIORIDAD {{prioridad.desc | uppercase}}</span>
+        </ion-item-divider>
+
+        <div *ngIf="prioridad.incidencias.length">
+          <ion-item-sliding *ngFor="let incidencia of prioridad.incidencias" #slidingItem>
+            <button ion-item (click)='mostrarIncidencia(incidencia.id)' class="incidencia">
+              <p class="establecimiento">{{incidencia.establecimiento}}</p>
+              <p class="maquina">{{incidencia.maquina.fabricante}} {{incidencia.maquina.modelo}}</p>
+              <div class="incidenciaTipos">
+                <ion-row *ngFor="let fila of incidencia.tipos">
+                  <ion-col *ngFor="let col of fila.cols">
+                    <ion-icon ios="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}" md="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}"></ion-icon>
+                    <span>{{col.desc}}</span>
+                  </ion-col>
+                </ion-row>
+              </div>
+            </button>
+    
+            <ion-item-options side="right">
+              <button ion-button color="warning" (click)='cerrarIncidencia(slidingItem, incidencia.id)'>Cerrar</button>
+            </ion-item-options>
+          </ion-item-sliding>
+        </div>
+      </ion-item-group>
+    </div>
+  </ion-list>
+
+  <ion-list *ngIf="!showPendientes" id="incidenciasCerradas">
+    <div *ngIf="!conIncidenciasCerradas" class="sinIncidencias">
+      <ion-item>
+        - Sin incidencias cerradas -
+      </ion-item>
+    </div>
+
+    <div *ngIf="conIncidenciasCerradas">
+      <ion-item-group>
+        <ion-item-divider color="purple" class="incidenciaHeader">
+          <ion-icon ios='ios-close' md='ios-close'></ion-icon> <span>INCIDENCIAS CERRADAS</span>
+        </ion-item-divider>
+
+        <button *ngFor="let incidencia of incidenciasCerradas" ion-item (click)='mostrarIncidencia(incidencia.id)' class="incidencia">
+          <p class="establecimiento">{{incidencia.establecimiento}}</p>
+          <p class="maquina">{{incidencia.maquina.fabricante}} {{incidencia.maquina.modelo}}</p>
+          <div class="incidenciaTipos">
+            <ion-row *ngFor="let fila of incidencia.tipos">
+              <ion-col *ngFor="let col of fila.cols">
+                <ion-icon ios="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}" md="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}"></ion-icon>
+                <span>{{col.desc}}</span>
+              </ion-col>
+            </ion-row>
+          </div>
+        </button>
+      </ion-item-group>
+    </div>
+  </ion-list>
+
+</ion-content>

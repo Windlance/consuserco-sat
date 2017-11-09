@@ -1,0 +1,46 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>Configuración</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content>
+
+  <ion-list margin-top>
+    <ion-item>
+      <ion-avatar item-start>
+        <img src="{{userDetails.foto}}" class="userAvatar">
+      </ion-avatar>
+      <h2>{{userDetails.nombre}} {{userDetails.apellidos}}</h2>
+      <p>{{userDetails.ocupacion}}</p>
+    </ion-item>
+  </ion-list>
+
+  <ion-list class="last">
+    <button ion-item>
+      <div ion-button item-start color="red"><ion-icon name='notifications'></ion-icon></div> Notificaciones
+    </button>
+    <button ion-item>
+      <div ion-button item-start color="green"><ion-icon name='key'></ion-icon></div> Privacidad
+    </button>
+    <button ion-item>
+      <div ion-button item-start color="orange"><ion-icon ios='ios-information' md="ios-information" class="help"></ion-icon></div> Acerca de
+    </button>
+    <button ion-item>
+      <div ion-button item-start><ion-icon name='help'></ion-icon></div> Ayuda
+    </button>
+    <button ion-item>
+      <div ion-button item-start color="green-4"><ion-icon name='text'></ion-icon></div> Contactar
+    </button>
+  </ion-list>
+
+  <div padding>
+    <button ion-button block outline color="danger" (click)="confirmLogout()">Cerrar sesión</button>
+  </div>
+
+
+
+</ion-content>

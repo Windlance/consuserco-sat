@@ -1,0 +1,62 @@
+page-incidencia-cerrar {
+    signature-pad {
+        canvas {
+            border: dashed 1px #cccccc;
+            width: 100%; height: 189px;
+            padding: 8px 0;
+        }
+    }
+    #clearSignature { 
+        position: absolute;
+        right: 0;
+        top: 0;
+        margin: 10px 16px 0;
+        color: color($colors, danger);
+        cursor: pointer;
+    }
+    ion-slides { height: auto; }
+    .incidencia form {
+        ion-item.item-input.input-has-focus {
+            .item-inner {
+                
+            }
+        }
+        ion-label[stacked] { 
+            color: color($colors, gris);
+            font-size: 14px;
+            line-height: 16px;
+            width: auto;
+            font-weight: 300;
+        }
+        ion-label.firma { margin-bottom:8px;}
+        ion-item {
+            
+            ion-textarea { 
+                textarea { resize: none; font-weight: 100; }
+            }
+            ion-input { 
+                input { font-weight: 100; }
+            }
+        }
+        ion-item.item-input:last-child {
+            .item-inner { border: 0; } 
+        }
+        .invalido {
+            /*
+            border-bottom: 1px solid color($colors, danger) !important;
+            .item-inner {
+                ion-label { color: color($colors, danger); }
+            }
+            */
+            ion-label.form-error {
+                font-size: 12px;
+                margin: 14px 16px 0;
+                color: color($colors, danger);
+                position: absolute;
+                right: 0;
+                top: 0
+            }
+        }
+        ion-item.firma { height:231px; }
+    }
+}

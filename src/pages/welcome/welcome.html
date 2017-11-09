@@ -1,0 +1,33 @@
+
+
+
+<ion-content padding id="welcome">
+
+  <img src="assets/imgs/logo.png" alt="" class="logo">
+
+  <ion-list class="formLogin">
+    <ion-item>
+      <ion-label floating>
+        <ion-icon ios="ios-mail-outline" md="ios-mail-outline"></ion-icon> 
+        <span>Email</span>
+      </ion-label>
+      <ion-input type="text" [(ngModel)]="userData.email"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label floating>
+        <ion-icon ios="ios-lock-outline" md="ios-lock-outline"></ion-icon> 
+        <span>Contraseña</span></ion-label>
+      <ion-input type="password" [(ngModel)]="userData.password"></ion-input>
+    </ion-item>
+
+    <ion-item class="d-none"></ion-item>
+
+  </ion-list>
+  
+  <div padding text-center>
+      <button ion-button block (click)="login()">Entrar</button>
+      <p class="copyright">&copy; Copyright 2017, Consuserco</p>
+  </div>
+
+</ion-content>

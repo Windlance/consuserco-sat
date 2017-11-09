@@ -1,0 +1,46 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>{{numeracion}}</ion-title>
+    <ion-buttons end *ngIf="!estaCerrada">
+      <button ion-button (click)="cerrarIncidencia()">
+          <ion-icon ios="ios-create-outline" md="ios-create-outline"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content class="incidencia">
+  <div id="map_canvas1"></div>
+
+  <div padding>
+    <p class="establecimiento" text-center no-margin>{{establecimiento}}</p>
+    <p class="direccion" text-center no-margin>{{full_direccion}}</p>
+    <p class="horario" text-center no-margin>{{horario}}</p>
+  </div>
+
+  <ion-row padding class="border-vertical">
+    <ion-col >
+      <button ion-button block outline (click)="llamarTelefono(telefono)">{{telefono}}</button>
+    </ion-col>
+    <ion-col >
+      <button ion-button block outline (click)="comoLlegar()">CÓMO LLEGAR</button>
+    </ion-col>
+  </ion-row>
+
+  <div>{{resultado}}</div>
+  <div padding>
+    <div class="incidenciaTipos" no-margin>
+      <ion-row *ngFor="let fila of tipos">
+        <ion-col *ngFor="let col of fila.cols">
+          <ion-icon ios="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}" md="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}"></ion-icon> <span>{{col.desc}}</span>
+        </ion-col>
+      </ion-row>
+    </div>
+
+    <div class="descripcion" margin-top>{{descripcion}}</div>
+  </div>
+
+</ion-content>
