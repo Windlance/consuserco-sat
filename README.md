@@ -1,26 +1,29 @@
-This is a starter template for [Ionic](http://ionicframework.com/docs/) projects.
+# Ionic App for Consuserco Technical Assistance Service
 
-## How to use this template
+The complexity of cigarette handling machines demands that all equipment receives regular servicing by skilled technicians if peak performance is to be maintained.
 
-*This template does not work on its own*. The shared files for each starter are found in the [ionic2-app-base repo](https://github.com/ionic-team/ionic2-app-base).
+This application is aimed at the technicians who supervise and repair the machines.
 
-To use this template, either create a new ionic project using the ionic node.js utility, or copy the files from this repository into the [Starter App Base](https://github.com/ionic-team/ionic2-app-base).
+Each technician can check their own pending repair requests, see where they are on a map, and close them when they are completed.
 
-### With the Ionic CLI:
+## App Functionality:
 
-Take the name after `ionic2-starter-`, and that is the name of the template to be used when using the `ionic start` command below:
+*Currently in development*
 
-```bash
-$ sudo npm install -g ionic cordova
-$ ionic start myTabs tabs
-```
+Once logged in the app, each technician can:
 
-Then, to run it, cd into `myTabs` and run:
+- View a list of all open requests, sorted by priority
+- View all open requests on a map. The color of each marker will indicate the priority of the request (red = urgent, yellow = high, green = normal, blue = low)
+- Edit an open request: see location on a map, the info about where the machine is located, type of request, inital request description 
+- Close an open request: including closing observations, if it is necessary to leave it pending, a backup email, and the client's signature
 
-```bash
-$ ionic cordova platform add ios
-$ ionic cordova run ios
-```
+### Data client-server
 
-Substitute ios for android if not on a Mac.
+When logging in, the server will return all pending requests to the client. All this information will be stored locally on the client
+When the client closes a request, it will send the closing information to the server, as well as update the local database
 
+## Future developments:
+
+- Notifications: automatically synchronize requests between the client and the server
+- Define routes manually selecting several requests from the map
+- Automatic routes: optimization of routes based on the calculation of distances, opening hours, priority of the requests ...
