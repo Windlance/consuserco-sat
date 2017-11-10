@@ -20,6 +20,7 @@ Once logged in the app, each technician can:
 ### Data client-server
 
 When logging in, the server will return all pending requests to the client. All this information will be stored locally on the client
+
 When the client closes a request, it will send the closing information to the server, as well as update the local database
 
 ## Future developments:
