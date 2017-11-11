@@ -1,10 +1,12 @@
+//import { Geocoder } from '@ionic-native/google-maps';
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { IonicPage, NavController } from 'ionic-angular';
-
-import { ConnectivityServiceProvider } from './../../providers/connectivity-service/connectivity-service';
 import { Geolocation } from '@ionic-native/geolocation';
-
 import { Storage } from '@ionic/storage';
+
+//import { ConnectivityServiceProvider } from './../../providers/connectivity-service/connectivity-service';
+
+import { IncidenciaPage } from './../incidencia/incidencia';
 
 declare var google;
 
@@ -15,32 +17,71 @@ declare var google;
 })
 export class MapaPage {
 
-  incidencias = []; 
-
   @ViewChild('map') mapElement: ElementRef;
-
   map: any;
   mapInitialised: boolean = false;
-  apiKey: string = 'AIzaSyDD_5is8bfWjLDzgHxqGCiy-1vrJWyOleY';   
+
+  markers = [ new google.maps.Marker ];
   iconBase = 'assets/imgs/map-markers/';
+  markerListeners = [];
+  geocoder = new google.maps.Geocoder;
+  posicionActual = new google.maps.Marker;
 
-  infoWindow: any;
+  incidencias = []; 
 
-  constructor(public navCtrl: NavController, public connectivityService: ConnectivityServiceProvider, 
-              private geolocation: Geolocation, public storage: Storage) {
+  constructor(public navCtrl: NavController, private geolocation: Geolocation, 
+              //public connectivityService: ConnectivityServiceProvider,
+              public storage: Storage) {
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad mapaPage');
+    console.log('ionViewDidLoad MapaPage');
+    this.initMap();
   }
 
   ionViewDidEnter() {
     console.log('ionViewDidEnter mapaPage');
+    this.deleteMarkers();                 // Borramos los markers que existiesen previamente
+
+    this.loadIncidenciasFromStorage();    // load incidencias del storage
+    setTimeout(function() {
+      console.log ('hola');
+      console.log(this.incidencias.length);
+      this.incidencias.forEach(incidencia => {
+        console.log(incidencia.id+":"+incidencia.geo.latitud);
+        if (incidencia.geo.latitud == null) {       // sin geocodificacion previa
+          let direccion = incidencia.direccion+", "+incidencia.cp+" "+incidencia.poblacion+", "+incidencia.provincia;
+          this.geocoder.geocode({'address': direccion}, function(results, status) {
+            if (status === 'OK') {
+              this.addMarker(results[0].geometry.location, incidencia.prioridad.marker, incidencia.id);  
+              incidencia.geo.latitud = results[0].geometry.location.lat;
+              incidencia.geo.logitud = results[0].geometry.location.lng;
+              this.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
+            } else {
+              console.log('Geocode error: ' + status);
+            }
+          });
+        }
+      });
+      this.showMarkers();
+
+      this.clearPosicionActual();
+      this.showPosicionActual();
+    }, 4000);
     
-    // load incidencias del storage
-    this.loadIncidenciasFromStorage();
+  }
+
+  initMap() {
+    this.mapInitialised = true;
     
-   }
+    // Definimos un centro para el mapa, el zoom, y lo creamos
+    this.map = new google.maps.Map(this.mapElement.nativeElement, {
+      center: new google.maps.LatLng(40.409313, -3.7010192), 		// Madrid
+      zoom: 12, 
+      mapTypeId: google.maps.MapTypeId.ROADMAP,
+      disableDefaultUI: true
+    });
+  }
 
   loadIncidenciasFromStorage() {
     this.incidencias = [];
@@ -49,9 +90,7 @@ export class MapaPage {
       this.storage.get('_abiertas').then((data) => {
         if (data != null) {
           let _abiertas = JSON.parse(data);
-          console.log(_abiertas);
           _abiertas.urgentes.forEach(id => {
-            //console.log('urgente: '+id);
             this.storage.get('incidencia-'+id).then((incidencia) => {
               if (incidencia != null) {
                 this.incidencias.push(JSON.parse(incidencia));
@@ -60,7 +99,6 @@ export class MapaPage {
           });
 
           _abiertas.altas.forEach(id => {
-            //console.log('alta: '+id);
             this.storage.get('incidencia-'+id).then((incidencia) => {
               if (incidencia != null) {
                 this.incidencias.push(JSON.parse(incidencia));
@@ -69,7 +107,6 @@ export class MapaPage {
           });
 
           _abiertas.normales.forEach(id => {
-            //console.log('normal: '+id);
             this.storage.get('incidencia-'+id).then((incidencia) => {
               if (incidencia != null) {
                 this.incidencias.push(JSON.parse(incidencia));
@@ -78,7 +115,6 @@ export class MapaPage {
           });
 
           _abiertas.bajas.forEach(id => {
-            //console.log('baja: '+id);
             this.storage.get('incidencia-'+id).then((incidencia) => {
               if (incidencia != null) {
                 this.incidencias.push(JSON.parse(incidencia));
@@ -87,11 +123,78 @@ export class MapaPage {
           });
         }
       });
-    }).then(() => {
-      this.loadGoogleMaps();
     });
   }
 
+  addMarkerListener(marker) {
+    let listener = google.maps.event.addListener(marker, 'click', () => {
+      this.abrirIncidencia(marker.id);      
+    });
+    this.markerListeners.push(listener);
+  }
+  removeMarkersListeners() {
+    this.markerListeners.forEach(element => {
+      this.removeMarkerListener(element);
+    });
+  }
+  removeMarkerListener(listenerHandle) {
+    listenerHandle.removeListener()
+  }
+
+  // Adds a marker to the map and push to the array.
+  addMarker(posicion, icon, id) {
+    let marker = new google.maps.Marker({
+      map: this.map,
+      position: posicion,
+      icon: icon,
+      id: id
+    });
+    this.markers.push(marker);
+  }
+
+  // Sets the map on all markers in the array.
+  setMapOnAll(map) {
+    for (var i = 0; i < this.markers.length; i++) {
+      this.markers[i].setMap(map);
+    }
+  }
+
+  // Removes the markers from the map, but keeps them in the array.
+  clearMarkers() {
+    this.setMapOnAll(null);
+  }
+
+  // Shows any markers currently in the array.
+  showMarkers() {
+    this.setMapOnAll(this.map);
+  }
+
+  // Deletes all markers in the array by removing references to them.
+  deleteMarkers() {
+    this.clearMarkers();
+    this.markers = [];
+  }
+  
+  clearPosicionActual() {
+    this.posicionActual.setMap(null);
+    this.posicionActual = null;
+  }
+  showPosicionActual() {
+    this.geolocation.getCurrentPosition().then((position) => {
+      let posicion = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+      this.posicionActual = new google.maps.Marker({
+        map: this.map,
+        position: posicion,
+        info: 'Mi posición'
+      });
+    });
+  }
+
+  abrirIncidencia(id) {
+    this.navCtrl.push(IncidenciaPage, {id: id});        // jump to incidenciaPage
+  }
+
+  /*
   loadGoogleMaps(){
     this.addConnectivityListeners();
 
@@ -132,8 +235,11 @@ export class MapaPage {
     }
 
   }
+  */
 
-  initMap() {
+
+  /*
+  initMap2() {
     this.mapInitialised = false;
 
     // Definimos un centro para el mapa, el zoom, y lo creamos
@@ -245,4 +351,5 @@ export class MapaPage {
       }
     });
   }
+  */
 }

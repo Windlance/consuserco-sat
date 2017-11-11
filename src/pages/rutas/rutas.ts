@@ -12,6 +12,7 @@ export class RutasPage {
 
   @ViewChild('map') mapElement: ElementRef;
   map: any;
+
   start = 'chicago, il';
   end = 'chicago, il';
   directionsService = new google.maps.DirectionsService;
@@ -21,7 +22,7 @@ export class RutasPage {
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad MapaPage');
+    console.log('ionViewDidLoad rutasPage');
     
     this.initMap();
   }

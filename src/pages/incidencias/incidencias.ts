@@ -24,14 +24,8 @@ export class IncidenciasPage {
   firstLoad = true;
 
   incidenciasAbiertas = {"urgentes":[], "altas":[], "normales":[], "bajas":[]};
-  incidenciasCerradas: any;
-
-  showPendientes = true;
-  
   sinAbiertas: boolean = false
   conAbiertas: boolean = false;
-  sinCerradas: boolean = false;
-  conCerradas: boolean = false;
 
   constructor(public navCtrl: NavController, public authService: AuthServiceProvider, 
               public navParams: NavParams, public toastCtrl: ToastController, 
@@ -158,16 +152,6 @@ export class IncidenciasPage {
 
       });
     });
-  }
-  
-  mostrarPendientes() {
-    this.showPendientes = true;
-  }
-
-  mostrarCerradas() {
-    this.showPendientes = false;
-    this.incidenciasCerradas = this.incidenciasAbiertas.urgentes;
-    this.conCerradas = (this.incidenciasCerradas.length)?true:false;
   }
 
   cerrarIncidencia(slidingItem: ItemSliding, id) {

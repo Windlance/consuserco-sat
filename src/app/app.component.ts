@@ -34,6 +34,8 @@ export class MyApp {
       // Assign the right page after checking the status
       this.storage.get('_2_userData').then((data) => {
         if (data != null) {
+          // verificar la sesion en el servidor
+          
           this.rootPage = TabsPage;
         }
         else {
