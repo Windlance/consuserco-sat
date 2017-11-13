@@ -1,4 +1,3 @@
-
 import { NgModule, ErrorHandler } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpModule } from '@angular/http';
@@ -31,6 +30,8 @@ import { GoogleMaps } from '@ionic-native/google-maps';
 
 import { SignaturePadModule } from 'angular2-signaturepad';
 
+import { PipesModule } from './../pipes/pipes.module';
+
 @NgModule({
   declarations: [
     MyApp,
@@ -60,7 +61,8 @@ import { SignaturePadModule } from 'angular2-signaturepad';
           backButtonText: 'Atrás'
         }
       }
-    })
+    }),
+    PipesModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [

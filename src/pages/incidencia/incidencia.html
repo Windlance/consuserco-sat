@@ -1,7 +1,7 @@
 <ion-header>
 
   <ion-navbar>
-    <ion-title>{{numeracion}}</ion-title>
+    <ion-title>{{incidencia.numeracion}}</ion-title>
     <ion-buttons end *ngIf="!estaCerrada">
       <button ion-button (click)="cerrarIncidencia()">
           <ion-icon ios="ios-create-outline" md="ios-create-outline"></ion-icon>
@@ -15,32 +15,31 @@
 <ion-content class="incidencia">
   <div #map id="map"></div>
 
-  <div padding>
-    <p class="establecimiento" text-center no-margin>{{establecimiento}}</p>
+  <div padding class="border-top">
+    <p class="establecimiento" text-center no-margin>{{incidencia.establecimiento}}</p>
     <p class="direccion" text-center no-margin>{{full_direccion}}</p>
-    <p class="horario" text-center no-margin>{{horario}}</p>
+    <p class="horario" text-center no-margin>{{incidencia.horario}}</p>
   </div>
 
   <ion-row padding class="border-vertical">
     <ion-col >
-      <button ion-button block outline (click)="llamarTelefono(telefono)">{{telefono}}</button>
+      <button ion-button block outline (click)="llamarTelefono(incidencia.telefono)">{{incidencia.telefono}}</button>
     </ion-col>
     <ion-col >
       <button ion-button block outline (click)="comoLlegar()">CÓMO LLEGAR</button>
     </ion-col>
   </ion-row>
 
-  <div>{{resultado}}</div>
   <div padding>
     <div class="incidenciaTipos" no-margin>
-      <ion-row *ngFor="let fila of tipos">
+      <ion-row *ngFor="let fila of incidencia.tipos">
         <ion-col *ngFor="let col of fila.cols">
           <ion-icon ios="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}" md="{{col.checked ? 'ios-checkbox': 'ios-square-outline'}}"></ion-icon> <span>{{col.desc}}</span>
         </ion-col>
       </ion-row>
     </div>
 
-    <div class="descripcion" margin-top>{{descripcion}}</div>
+    <div class="descripcion" margin-top>{{incidencia.descripcion}}</div>
   </div>
 
 </ion-content>

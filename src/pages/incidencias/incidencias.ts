@@ -1,3 +1,5 @@
+
+
 import { Component } from '@angular/core';
 import { IonicPage, NavController, NavParams, ItemSliding, ToastController } from 'ionic-angular';
 
@@ -8,47 +10,64 @@ import { IncidenciaCerrarPage } from './../incidencia-cerrar/incidencia-cerrar';
 
 import { Storage } from '@ionic/storage';
 
-
 @IonicPage()
 @Component({
   selector: 'page-incidencias',
-  templateUrl: 'incidencias.html',
+  templateUrl: 'incidencias.html'
 })
 export class IncidenciasPage {
 
   sesionData = { "key1": "", "key2": "" };
-
   responseData: any;
-  prioridades: any;
 
   firstLoad = true;
 
-  incidenciasAbiertas = {"urgentes":[], "altas":[], "normales":[], "bajas":[]};
+  prioridades: Array<any> = [];
+  idsAbiertasGrouped            = {"urgentes":[], "altas":[], "normales":[], "bajas":[]};    // ids groups by priority
+  idsAbiertasAll: Array<number> = [];           // ids (all)  ["1", "23", "44" ...]
   sinAbiertas: boolean = false
   conAbiertas: boolean = false;
-
+  
   constructor(public navCtrl: NavController, public authService: AuthServiceProvider, 
               public navParams: NavParams, public toastCtrl: ToastController, 
               public storage: Storage) {
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad IncidenciasPage');
+    //console.log('ionViewDidLoad IncidenciasPage');
+    this.prioridades[3] = { desc: 'urgente',  value: 3, color: 'danger',    icon: { ios: 'ios-flash',         md: 'md-flash' },           incidencias: [] };
+    this.prioridades[2] = { desc: 'alta',     value: 2, color: 'warning',   icon: { ios: 'md-arrow-dropup',   md: 'md-arrow-dropup' },    incidencias: [] };
+    this.prioridades[1] = { desc: 'normal',   value: 1, color: 'success',   icon: { ios: 'ios-more',          md: 'ios-more' },           incidencias: [] };
+    this.prioridades[0] = { desc: 'baja',     value: 0, color: 'info',      icon: { ios: 'md-arrow-dropdown', md: 'md-arrow-dropdown' },  incidencias: [] };
+
+    this.loadIncidenciasFromServer();
   }
 
   ionViewDidEnter () {
     console.log('ionViewDidEnter IncidenciasPage: firstLoad = '+this.firstLoad);
-    if (this.firstLoad) {
-      this.loadIncidenciasFromServer();
-    }
-    else {
-      this.actualizarLocales();
-      //this.showToast("refresh!!", "warning");
+    if (!this.firstLoad) {
+      this.storage.ready().then(() => {
+        this.storage.get('_abiertas').then((data)=>{
+          this.idsAbiertasGrouped = JSON.parse(data);
+          this.idsAbiertasAll =  this.idsAbiertasGrouped.urgentes.concat(this.idsAbiertasGrouped.altas, this.idsAbiertasGrouped.normales, this.idsAbiertasGrouped.bajas);
+          this.conAbiertas = (this.idsAbiertasAll.length > 0);
+          this.sinAbiertas = !(this.conAbiertas);
+        }).then(() => {
+          this.prioridades.forEach((grupo, key, index) => {
+            grupo.incidencias.forEach((incidencia, clave, index) => {
+              // update arrays removing already closed incidencias (not in array idsAbiertasAll)
+              if (this.idsAbiertasAll.indexOf(incidencia.id) === -1) {  
+                //console.log(this.prioridades[key].incidencias[clave]);
+                this.prioridades[key].incidencias.splice(clave,1);
+              }
+            });
+          });
+        });
+      });
     }
   }
 
   loadIncidenciasFromServer() {
-    //console.log("LOAD FROM SERVER");
     this.storage.ready().then(() => {
       this.storage.get('_1_sesionData').then((data) => {
         if (data != null) {
@@ -59,17 +78,14 @@ export class IncidenciasPage {
             //console.log(this.responseData);
             let status = this.responseData.status;
             if (status == 'ok') {
-              // Para cada incidencia abierta recibida del servidor...
+              // For each incidencia recevied from server ...
               this.responseData.incidencias.forEach(incidencia => {
-                // Guardo cada incidencia en Storage por separado
+                // ... save each incidencia in the Storage
                 this.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
               });
-              // Guardo el array de ids de incidencias (ids) agrupados segun prioridad en el Storage
-              let ids = { 'urgentes': this.responseData.urgentes, 'altas': this.responseData.altas, 'normales': this.responseData.normales, 'bajas': this.responseData.bajas };
-              this.storage.set('_abiertas', JSON.stringify(ids));
-
-              let _cerradas = [];
-              this.storage.set('_cerradas', JSON.stringify(_cerradas));
+              // Save in Storage the array built with the incidencias ids grouped by preference
+              let temp = { 'urgentes': this.responseData.urgentes, 'altas': this.responseData.altas, 'normales': this.responseData.normales, 'bajas': this.responseData.bajas };
+              this.storage.set('_abiertas', JSON.stringify(temp));
 
               this.actualizarLocales();
 
@@ -89,69 +105,27 @@ export class IncidenciasPage {
   }
 
   actualizarLocales(){
-    this.incidenciasAbiertas = {"urgentes":[], "altas":[], "normales":[], "bajas":[]};
-    this.conAbiertas = false;
-
+    // Load _abiertas from Storage -> load each record from Storage -> update arrays and booleans
     this.storage.ready().then(() => {
       this.storage.get('_abiertas').then((arraysIds)=>{
-        let _abiertas = JSON.parse(arraysIds);
-        
-        let iUrgentes = _abiertas.urgentes;
-        if (iUrgentes.length > 0) {
-          iUrgentes.forEach( (value, key, index) => {
-            this.storage.get('incidencia-'+value).then((data)=> {
-              this.incidenciasAbiertas.urgentes.push(JSON.parse(data)); 
-              this.conAbiertas = true;
-              this.sinAbiertas = false;
-              });
+        this.idsAbiertasGrouped = JSON.parse(arraysIds);
+        this.idsAbiertasAll =  this.idsAbiertasGrouped.urgentes.concat(this.idsAbiertasGrouped.altas, this.idsAbiertasGrouped.normales, this.idsAbiertasGrouped.bajas);
+       
+        this.idsAbiertasAll.forEach( (value, key, index) => {
+          this.storage.get('incidencia-'+value).then((data)=> {
+            let dataParsed = JSON.parse(data);
+            this.prioridades[dataParsed.prioridad.val].incidencias.push(dataParsed); 
           });
-        }
-    
-        let iAltas = _abiertas.altas;
-        if (iAltas.length > 0) {
-          iAltas.forEach( (value, key, index) => {
-            this.storage.get('incidencia-'+value).then((data)=> {
-              this.incidenciasAbiertas.altas.push(JSON.parse(data)); 
-              this.conAbiertas = true;
-              this.sinAbiertas = false;
-            });
-          });
-        }
-        
-        let iNormales = _abiertas.normales;
-        if (iNormales.length > 0) {
-          iNormales.forEach( (value, key, index) => {
-            this.storage.get('incidencia-'+value).then((data)=> {
-              this.incidenciasAbiertas.normales.push(JSON.parse(data)); 
-              this.conAbiertas = true;
-              this.sinAbiertas = false;
-            });
-          });
-        }
-    
-        let iBajas = _abiertas.bajas;
-        if (iBajas.length > 0) {
-          iBajas.forEach( (value, key, index) => {
-            this.storage.get('incidencia-'+value).then((data)=> {
-              this.incidenciasAbiertas.bajas.push(JSON.parse(data)); 
-              this.conAbiertas = true;
-              this.sinAbiertas = false;
-            });
-          });
-        }
-
+        });
       }).then(() => {
-        this.prioridades = [];
-
-        this.prioridades = [
-          { desc: 'urgente',  value: 3, color: 'danger', icon: { ios: 'ios-flash', md: 'md-flash' }, incidencias: this.incidenciasAbiertas.urgentes },
-          { desc: 'alta',     value: 2, color: 'warning', icon: { ios: 'md-arrow-dropup', md: 'md-arrow-dropup' }, incidencias: this.incidenciasAbiertas.altas },
-          { desc: 'normal',   value: 1, color: 'success', icon: { ios: 'ios-more', md: 'ios-more' }, incidencias: this.incidenciasAbiertas.normales },
-          { desc: 'baja',     value: 0, color: 'info', icon: { ios: 'md-arrow-dropdown', md: 'md-arrow-dropdown' }, incidencias: this.incidenciasAbiertas.bajas }
-        ];
-
+        this.conAbiertas = (this.idsAbiertasAll.length > 0);
+        this.sinAbiertas = !(this.conAbiertas);
       });
     });
+  }
+
+  isAbierta(id) {
+    return (this.idsAbiertasAll.indexOf(id) !== -1);
   }
 
   cerrarIncidencia(slidingItem: ItemSliding, id) {

@@ -15,35 +15,19 @@ declare var google;
 })
 export class IncidenciaPage {
 
+  @ViewChild('map') mapElement: ElementRef;
+  map: any;
+  marker = new google.maps.Marker;
+  iconBase = 'assets/imgs/map-markers/';
+  geocoder = new google.maps.Geocoder;
+
   id: any;
   incidencia = {'id':'', 
     'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
     'horario':'', 'telefono':'', 'geo':{'longitud':'', 'latitud':''}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':''
   };
-  
-  @ViewChild('map') mapElement: ElementRef;
-  map: any;
-
-  marker = new google.maps.Marker;
-  iconBase = 'assets/imgs/map-markers/';
-  geocoder = new google.maps.Geocoder;
-
-  estaCerrada: boolean = false;
-
-  numeracion: any;
-  establecimiento: any;
-  direccion: any;
-  cp: any;
-  poblacion: any;
-  provincia: any;
-  horario: any;
-  telefono: any;
-  tipos: any;
-  descripcion: any;
-  icon: any;
-  position: any;
-  
   full_direccion: string;
+  estaCerrada: boolean = false;
 
   constructor(public navCtrl: NavController, public navParams: NavParams, public toastCtrl: ToastController, 
               public storage: Storage, public launchNavigator: LaunchNavigator ) {
@@ -64,7 +48,7 @@ export class IncidenciaPage {
   initMap() {
     // Initialize the map
     this.map = new google.maps.Map(this.mapElement.nativeElement, {
-      zoom: 14, 
+      zoom: 15, 
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       disableDefaultUI: true
     });
@@ -77,76 +61,56 @@ export class IncidenciaPage {
       'horario':'', 'telefono':'', 'geo':{'longitud':'', 'latitud':''}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado': ''
     };
 
-    //console.log ("Loading incidencia... "+this.id);
-
-    let storage = this.storage;
-
+    let scope = this;
     this.storage.ready().then(() => {
       this.storage.get('incidencia-'+this.id).then((data) => {
         if (data != null) {
-          let incidencia = JSON.parse(data);
-          this.incidencia = incidencia;
+          scope.incidencia = JSON.parse(data);
+          scope.estaCerrada = (scope.incidencia.estado == '4');
+          scope.full_direccion = scope.incidencia.direccion+', '+scope.incidencia.cp+' '+scope.incidencia.poblacion+', '+scope.incidencia.provincia;
 
-          this.id = this.incidencia.id;
-          this.numeracion = this.incidencia.numeracion;
-          this.establecimiento = this.incidencia.establecimiento;
-          this.direccion = this.incidencia.direccion;
-          this.cp = this.incidencia.cp;
-          this.poblacion = this.incidencia.poblacion;
-          this.provincia = this.incidencia.provincia;
-          this.horario = this.incidencia.horario;
-          this.telefono = this.incidencia.telefono;
-          this.tipos = this.incidencia.tipos;
-          this.descripcion = this.incidencia.descripcion;
-
-          this.estaCerrada = (this.incidencia.estado == '4');
-
-          let id = this.id;
-          let icono = this.incidencia.prioridad.marker;
-          let map = this.map;
-          let iconBase = this.iconBase;
-
-          this.full_direccion = this.direccion+', '+this.cp+' '+this.poblacion+', '+this.provincia;
-
-          if (incidencia.geo.latitud == null) {       // Needs geocoding...
+          if (scope.incidencia.geo.latitud == null) {       // Needs geocoding...
             //console.log ('geocoding...');
-            let direccion = this.full_direccion;
-            this.geocoder.geocode({'address': direccion}, function(results, status) {
-              if (status === 'OK') {
+            this.geocoder.geocode({'address': scope.full_direccion}, function(results, status) {
+              if (status === google.maps.GeocoderStatus.OK) {
                 let marker = new google.maps.Marker({
-                  map: map,
+                  map: scope.map,
                   position: results[0].geometry.location,
-                  icon: iconBase + "" +  icono,
-                  id: id
+                  icon: scope.iconBase + scope.incidencia.prioridad.marker,
+                  id: scope.id
                 });
-                this.marker = marker;
+                scope.marker = marker;
 
                 // Center map in marker
-                map.panTo(results[0].geometry.location); 
+                scope.map.panTo(results[0].geometry.location); 
 
                 // Update local registry with geocode info
-                incidencia.geo.latitud = results[0].geometry.location.lat();
-                incidencia.geo.longitud = results[0].geometry.location.lng();
-                storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
+                scope.incidencia.geo.latitud = results[0].geometry.location.lat();
+                scope.incidencia.geo.longitud = results[0].geometry.location.lng();
+                scope.storage.set('incidencia-'+scope.incidencia.id, JSON.stringify(scope.incidencia));
 
+              } else if (status === google.maps.GeocoderStatus.ZERO_RESULTS) {
+                console.log('Geocode error: ' + status);
+                scope.showToast("Dirección no encontrada","warning");
               } else {
-                this.showToast("Imposible localizar la incidencia en el mapa","warning");
                 console.log('Geocode error: ' + status);
               }
+
             });
           }
           else {    // Geocoding done previously...
-            let position = new google.maps.LatLng({lat: incidencia.geo.latitud, lng: incidencia.geo.longitud}); 
+            let position = new google.maps.LatLng({lat: scope.incidencia.geo.latitud, lng: scope.incidencia.geo.longitud}); 
             let marker = new google.maps.Marker({
-              map: map,
+              map: scope.map,
               position: position,
-              icon: iconBase + "" +  icono,
-              id: id
+              icon: scope.iconBase + scope.incidencia.prioridad.marker,
+              info: scope.incidencia.establecimiento,
+              id: scope.id
             });
             this.marker = marker;
 
             // Center map in marker
-            map.panTo(position); 
+            scope.map.panTo(position); 
           }
         }
       });
@@ -157,15 +121,6 @@ export class IncidenciaPage {
     if (!this.estaCerrada) {
       this.navCtrl.push(IncidenciaCerrarPage, {id: this.id});
     }
-  }
-
-  showToast(mensaje, tipo){
-    let toast = this.toastCtrl.create({
-      message: mensaje,
-      duration: 2000,
-      cssClass: tipo
-    });
-    toast.present();
   }
 
   llamarTelefono(n:string){
@@ -188,4 +143,13 @@ export class IncidenciaPage {
     };
     this.launchNavigator.navigate(this.full_direccion, options);
   };
+
+  showToast(mensaje, tipo){
+    let toast = this.toastCtrl.create({
+      message: mensaje,
+      duration: 2000,
+      cssClass: tipo
+    });
+    toast.present();
+  }
 }

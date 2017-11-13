@@ -4,5 +4,7 @@ page-mapa {
     height: 100%;
     background-color: color($colors, gris);
   }
-  img[src^="http://maps.gstatic.com/mapfiles/api-3/images/"] { display: none; }
+  .gmnoprint { display: none }
+  .gm-style-cc { display: none }
+  // img[src^="http://maps.gstatic.com/mapfiles/api-3/images/"] { display: none; }
 }

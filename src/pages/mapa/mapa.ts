@@ -1,10 +1,7 @@
-//import { Geocoder } from '@ionic-native/google-maps';
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { IonicPage, NavController } from 'ionic-angular';
+import { IonicPage, NavController, ToastController } from 'ionic-angular';
 import { Geolocation } from '@ionic-native/geolocation';
 import { Storage } from '@ionic/storage';
-
-//import { ConnectivityServiceProvider } from './../../providers/connectivity-service/connectivity-service';
 
 import { IncidenciaPage } from './../incidencia/incidencia';
 
@@ -19,65 +16,85 @@ export class MapaPage {
 
   @ViewChild('map') mapElement: ElementRef;
   map: any;
-  mapInitialised: boolean = false;
 
   markers = [ new google.maps.Marker ];
   iconBase = 'assets/imgs/map-markers/';
   markerListeners = [];
   geocoder = new google.maps.Geocoder;
   posicionActual = new google.maps.Marker;
+  infoWindow = new google.maps.InfoWindow;
 
   incidencias = []; 
 
-  constructor(public navCtrl: NavController, private geolocation: Geolocation, 
-              //public connectivityService: ConnectivityServiceProvider,
+  constructor(public navCtrl: NavController, public toastCtrl: ToastController, private geolocation: Geolocation, 
               public storage: Storage) {
   }
 
   ionViewDidLoad() {
-    console.log('ionViewDidLoad MapaPage');
-    this.initMap();
+    //console.log('ionViewDidLoad MapaPage');
   }
 
   ionViewDidEnter() {
-    console.log('ionViewDidEnter mapaPage');
-    this.deleteMarkers();                 // Borramos los markers que existiesen previamente
+    //console.log('ionViewDidEnter mapaPage');
+    
+    this.initMap();   // Initialize map
+    
+    this.deleteMarkers();                 // Delete previous markers
 
     this.loadIncidenciasFromStorage();    // load incidencias del storage
-    setTimeout(function() {
-      console.log ('hola');
-      console.log(this.incidencias.length);
-      this.incidencias.forEach(incidencia => {
-        console.log(incidencia.id+":"+incidencia.geo.latitud);
-        if (incidencia.geo.latitud == null) {       // sin geocodificacion previa
-          let direccion = incidencia.direccion+", "+incidencia.cp+" "+incidencia.poblacion+", "+incidencia.provincia;
-          this.geocoder.geocode({'address': direccion}, function(results, status) {
-            if (status === 'OK') {
-              this.addMarker(results[0].geometry.location, incidencia.prioridad.marker, incidencia.id);  
-              incidencia.geo.latitud = results[0].geometry.location.lat;
-              incidencia.geo.logitud = results[0].geometry.location.lng;
-              this.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
-            } else {
-              console.log('Geocode error: ' + status);
-            }
-          });
-        }
-      });
-      this.showMarkers();
 
-      this.clearPosicionActual();
-      this.showPosicionActual();
-    }, 4000);
-    
+    let scope = this;
+    setTimeout(function() {
+
+        scope.incidencias.forEach(incidencia => {
+          if (incidencia.geo.latitud === null) {       // Needs geocoding...
+            //console.log(incidencia.id+" needs geocoding...");
+            let direccion = incidencia.direccion+", "+incidencia.cp+" "+incidencia.poblacion+", "+incidencia.provincia;
+            scope.geocoder.geocode({'address': direccion}, function(results, status) {
+              if (status === google.maps.GeocoderStatus.OK) {
+                scope.addMarker(results[0].geometry.location, incidencia.prioridad.marker, incidencia.establecimiento, incidencia.id);  
+                
+                // Update local registry with geocode info
+                incidencia.geo.latitud = results[0].geometry.location.lat;
+                incidencia.geo.logitud = results[0].geometry.location.lng;
+                scope.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
+                //console.log(incidencia.id+" actualizada");
+              } else if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) { 
+
+                console.log('Geocode error: ' + status);
+              } else if (status === google.maps.GeocoderStatus.ZERO_RESULTS) {
+                scope.showToast("Dirección no encontrada","warning");
+                console.log('Geocode sin resultado: ' + status);
+              } else {
+                console.log('Geocode error: ' + status);
+              }
+            });
+          }
+          else {    // Geocoding done previously...
+            let position = new google.maps.LatLng({lat: incidencia.geo.latitud, lng: incidencia.geo.longitud}); 
+            scope.addMarker(position, incidencia.prioridad.marker, incidencia.establecimiento, incidencia.id);  
+          }
+        });
+
+    }, 3000);
+
+    setTimeout(function() {
+      //console.log('mostrando markers');
+      scope.showMarkers();
+
+      scope.clearPosicionActual();
+      scope.showPosicionActual();
+    }, 6000);
+
+    setTimeout(function() {
+      scope.centerMap();
+    }, 9000);
   }
 
   initMap() {
-    this.mapInitialised = true;
-    
-    // Definimos un centro para el mapa, el zoom, y lo creamos
+    // Initialize the map
     this.map = new google.maps.Map(this.mapElement.nativeElement, {
-      center: new google.maps.LatLng(40.409313, -3.7010192), 		// Madrid
-      zoom: 12, 
+      zoom: 11, 
       mapTypeId: google.maps.MapTypeId.ROADMAP,
       disableDefaultUI: true
     });
@@ -123,32 +140,49 @@ export class MapaPage {
           });
         }
       });
+    }).then(() => {
+      //console.log(this.incidencias);
     });
   }
 
-  addMarkerListener(marker) {
-    let listener = google.maps.event.addListener(marker, 'click', () => {
+  addMarkerListeners(marker) {
+    let listenerClick = google.maps.event.addListener(marker, 'click', () => {
       this.abrirIncidencia(marker.id);      
     });
-    this.markerListeners.push(listener);
+    this.markerListeners.push(listenerClick);
+
+    let listenerMouseOver = google.maps.event.addListener(marker, 'mouseover', () => {
+      if (this.infoWindow) {
+        this.infoWindow.close();
+      }
+      this.infoWindow.setContent('<span class="infoWindow">'+marker.info+'</span>');
+      this.infoWindow.open(this.map, marker);
+    });
+    this.markerListeners.push(listenerMouseOver);
+
+    let listenerMouseOut = google.maps.event.addListener(marker, 'mouseout', () => {
+      if (this.infoWindow) {
+        this.infoWindow.close();
+      }
+    });
+    this.markerListeners.push(listenerMouseOut);
   }
   removeMarkersListeners() {
-    this.markerListeners.forEach(element => {
-      this.removeMarkerListener(element);
+    this.markerListeners.forEach(listenerHandle => {
+      google.maps.event.removeListener(listenerHandle);
     });
-  }
-  removeMarkerListener(listenerHandle) {
-    listenerHandle.removeListener()
   }
 
   // Adds a marker to the map and push to the array.
-  addMarker(posicion, icon, id) {
+  addMarker(posicion, icon, info, id) {
     let marker = new google.maps.Marker({
       map: this.map,
       position: posicion,
-      icon: icon,
+      icon: this.iconBase + icon,
+      info: info,
       id: id
     });
+    this.addMarkerListeners(marker);
     this.markers.push(marker);
   }
 
@@ -173,27 +207,56 @@ export class MapaPage {
   deleteMarkers() {
     this.clearMarkers();
     this.markers = [];
+    this.removeMarkersListeners();
   }
   
   clearPosicionActual() {
-    this.posicionActual.setMap(null);
+    if (this.posicionActual)
+      this.posicionActual.setMap(null);
     this.posicionActual = null;
   }
   showPosicionActual() {
+    let scope = this;
     this.geolocation.getCurrentPosition().then((position) => {
       let posicion = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
       this.posicionActual = new google.maps.Marker({
-        map: this.map,
+        map: scope.map,
         position: posicion,
         info: 'Mi posición'
       });
+      // Center map in marker
+      scope.map.panTo(posicion); 
     });
+  }
+
+
+  centerMap() {
+    let mapBounds = new google.maps.LatLngBounds();     // Initialize map bounds
+
+    console.log("MARKERS: ");
+    console.log(this.markers);
+    
+    this.markers.forEach(element => {                   // Add markers to map bounds
+      mapBounds.extend(element.position);
+    });
+
+    mapBounds.extend(this.posicionActual.position);     // Add actual position to map bounds
+
+    this.map.fitBounds(mapBounds);                      // Set map bounds
   }
 
   abrirIncidencia(id) {
     this.navCtrl.push(IncidenciaPage, {id: id});        // jump to incidenciaPage
   }
 
+  showToast(mensaje, tipo){
+    let toast = this.toastCtrl.create({
+      message: mensaje,
+      duration: 2000,
+      cssClass: tipo
+    });
+    toast.present();
+  }
   /*
   loadGoogleMaps(){
     this.addConnectivityListeners();

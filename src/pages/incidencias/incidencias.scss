@@ -9,7 +9,7 @@ page-incidencias {
     ion-item-sliding {
         button.item-ios:not([detail-none]) .item-inner { background-position: right 16px top 16px; }
     }
-    ion-list ion-item-group:not(:last-child) ion-item-sliding:last-child .item-inner { border:0 }
+    ion-list ion-item-group:not(:last-child) div div:last-child ion-item-sliding .item-inner { border:0 }
     .sinIncidencias {
         ion-item.item-block {
             border-top:1px solid #dedede;  border-bottom:1px solid #dedede; padding:0;
