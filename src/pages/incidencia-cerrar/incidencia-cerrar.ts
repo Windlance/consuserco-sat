@@ -149,6 +149,8 @@ export class IncidenciaCerrarPage {
         console.log(this.slideOneForm.value);
         console.log(this.slideTwoForm.value);
 
+        let promises = [];
+
         // save data in server
 
 
@@ -159,24 +161,26 @@ export class IncidenciaCerrarPage {
 
         let arrayIndices;
         switch (this.prioridad) {
-          case 0: arrayIndices = this._abiertas.bajas; break; // baja
-          case 1: arrayIndices = this._abiertas.normales; break;// normal
-          case 2: arrayIndices = this._abiertas.altas; break;// alta
-          case 3: arrayIndices = this._abiertas.urgentes; break;// urgente
+          case 0: arrayIndices = this._abiertas.bajas; break;         // baja
+          case 1: arrayIndices = this._abiertas.normales; break;      // normal
+          case 2: arrayIndices = this._abiertas.altas; break;         // alta
+          case 3: arrayIndices = this._abiertas.urgentes; break;      // urgente
 
         }
-        if (this._cerradas.indexOf(this.id) == -1) {    // la añado a cerradas
+        if (this._cerradas.indexOf(this.id) === -1) {    // la añado a cerradas
           this._cerradas.push(this.id);
           this.storage.set('_cerradas', JSON.stringify(this._cerradas));
         }
         let index = arrayIndices.indexOf(this.id);
-        if (index != -1) {                              // la quito de abiertas
+        if (index !== -1) {                              // la quito de abiertas
           arrayIndices.splice(index, 1);
           this.storage.set('_abiertas', JSON.stringify(this._abiertas));
         }
 
-        this.showToast("Incidencia Cerrada", "success");
-        this.navCtrl.popToRoot();          // al listado de incidencias
+        Promise.all(promises).then(() => {
+          this.showToast("Incidencia Cerrada", "success");
+          this.navCtrl.popToRoot();          // al listado de incidencias
+        });
       }
   }
 

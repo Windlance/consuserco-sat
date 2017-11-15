@@ -24,7 +24,7 @@ export class IncidenciaPage {
   id: any;
   incidencia = {'id':'', 
     'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
-    'horario':'', 'telefono':'', 'geo':{'longitud':'', 'latitud':''}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':''
+    'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':''
   };
   full_direccion: string;
   estaCerrada: boolean = false;
@@ -58,7 +58,39 @@ export class IncidenciaPage {
     // Reset incidencia Object
     this.incidencia = {'id':'', 
       'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
-      'horario':'', 'telefono':'', 'geo':{'longitud':'', 'latitud':''}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado': ''
+      'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado': ''
+    };
+
+    let scope = this;
+    this.storage.ready().then(() => {
+      this.storage.get('incidencia-'+this.id).then((data) => {
+        if (data != null) {
+          scope.incidencia = JSON.parse(data);
+          scope.estaCerrada = (scope.incidencia.estado == '4');
+          scope.full_direccion = scope.incidencia.direccion+', '+scope.incidencia.cp+' '+scope.incidencia.poblacion+', '+scope.incidencia.provincia;
+
+          let position = new google.maps.LatLng({lat: scope.incidencia.geo.latitud, lng: scope.incidencia.geo.longitud}); 
+          let marker = new google.maps.Marker({
+            map: scope.map,
+            position: position,
+            icon: scope.iconBase + scope.incidencia.prioridad.marker,
+            info: scope.incidencia.establecimiento,
+            id: scope.id
+          });
+          this.marker = marker;
+
+          // Center map in marker
+          scope.map.panTo(position); 
+        }
+      });
+    });
+  }
+
+  loadIncidenciaWithGeocoding() {
+    // Reset incidencia Object
+    this.incidencia = {'id':'', 
+      'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
+      'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado': ''
     };
 
     let scope = this;
@@ -132,6 +164,7 @@ export class IncidenciaPage {
 
   comoLlegar(){
     let app;
+    let scope = this;
     if (this.launchNavigator.isAppAvailable(this.launchNavigator.APP.GOOGLE_MAPS)) {
       app = this.launchNavigator.APP.GOOGLE_MAPS;
     } else {
@@ -141,7 +174,8 @@ export class IncidenciaPage {
     let options: LaunchNavigatorOptions = {
       app: app
     };
-    this.launchNavigator.navigate(this.full_direccion, options);
+    this.launchNavigator.navigate([scope.incidencia.geo.latitud, scope.incidencia.geo.longitud], options);
+    //this.launchNavigator.navigate(this.full_direccion, options);
   };
 
   showToast(mensaje, tipo){

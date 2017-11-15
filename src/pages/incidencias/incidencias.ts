@@ -20,7 +20,7 @@ export class IncidenciasPage {
   sesionData = { "key1": "", "key2": "" };
   responseData: any;
 
-  firstLoad = true;
+  firstLoad: boolean = true;
 
   prioridades: Array<any> = [];
   idsAbiertasGrouped            = {"urgentes":[], "altas":[], "normales":[], "bajas":[]};    // ids groups by priority
@@ -46,24 +46,7 @@ export class IncidenciasPage {
   ionViewDidEnter () {
     console.log('ionViewDidEnter IncidenciasPage: firstLoad = '+this.firstLoad);
     if (!this.firstLoad) {
-      this.storage.ready().then(() => {
-        this.storage.get('_abiertas').then((data)=>{
-          this.idsAbiertasGrouped = JSON.parse(data);
-          this.idsAbiertasAll =  this.idsAbiertasGrouped.urgentes.concat(this.idsAbiertasGrouped.altas, this.idsAbiertasGrouped.normales, this.idsAbiertasGrouped.bajas);
-          this.conAbiertas = (this.idsAbiertasAll.length > 0);
-          this.sinAbiertas = !(this.conAbiertas);
-        }).then(() => {
-          this.prioridades.forEach((grupo, key, index) => {
-            grupo.incidencias.forEach((incidencia, clave, index) => {
-              // update arrays removing already closed incidencias (not in array idsAbiertasAll)
-              if (this.idsAbiertasAll.indexOf(incidencia.id) === -1) {  
-                //console.log(this.prioridades[key].incidencias[clave]);
-                this.prioridades[key].incidencias.splice(clave,1);
-              }
-            });
-          });
-        });
-      });
+      this.updateLocales();
     }
   }
 
@@ -84,10 +67,13 @@ export class IncidenciasPage {
                 this.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
               });
               // Save in Storage the array built with the incidencias ids grouped by preference
-              let temp = { 'urgentes': this.responseData.urgentes, 'altas': this.responseData.altas, 'normales': this.responseData.normales, 'bajas': this.responseData.bajas };
-              this.storage.set('_abiertas', JSON.stringify(temp));
+              let _abiertas = { 'urgentes': this.responseData.urgentes, 'altas': this.responseData.altas, 'normales': this.responseData.normales, 'bajas': this.responseData.bajas };
+              this.storage.set('_abiertas', JSON.stringify(_abiertas));
 
-              this.actualizarLocales();
+              let _cerradas = [];
+              this.storage.set('_cerradas', JSON.stringify(_cerradas));
+
+              this.loadLocales();
 
               this.firstLoad = false;
             }
@@ -104,26 +90,51 @@ export class IncidenciasPage {
     });
   }
 
-  actualizarLocales(){
-    // Load _abiertas from Storage -> load each record from Storage -> update arrays and booleans
+  loadLocales(){
     this.storage.ready().then(() => {
+      // Load _abiertas from Storage 
       this.storage.get('_abiertas').then((arraysIds)=>{
         this.idsAbiertasGrouped = JSON.parse(arraysIds);
         this.idsAbiertasAll =  this.idsAbiertasGrouped.urgentes.concat(this.idsAbiertasGrouped.altas, this.idsAbiertasGrouped.normales, this.idsAbiertasGrouped.bajas);
        
+        // load each record from Storage
         this.idsAbiertasAll.forEach( (value, key, index) => {
           this.storage.get('incidencia-'+value).then((data)=> {
             let dataParsed = JSON.parse(data);
+            // update arrays
             this.prioridades[dataParsed.prioridad.val].incidencias.push(dataParsed); 
           });
         });
-      }).then(() => {
+        // update booleans
         this.conAbiertas = (this.idsAbiertasAll.length > 0);
         this.sinAbiertas = !(this.conAbiertas);
       });
     });
   }
 
+  updateLocales() {
+    this.storage.ready().then(() => {
+      this.storage.get('_abiertas').then((data)=>{
+        this.idsAbiertasGrouped = JSON.parse(data);
+        this.idsAbiertasAll =  this.idsAbiertasGrouped.urgentes.concat(this.idsAbiertasGrouped.altas, this.idsAbiertasGrouped.normales, this.idsAbiertasGrouped.bajas);
+
+        this.conAbiertas = (this.idsAbiertasAll.length > 0);
+        this.sinAbiertas = !(this.conAbiertas);
+      }).then(() => {
+        // Remove incidencias from its grouped array if not in idsAbiertasAll anymore 
+        this.prioridades.forEach((grupo, key, index) => {
+          grupo.incidencias.forEach((incidencia, clave, index) => {
+            // update arrays removing already closed incidencias (not in array idsAbiertasAll)
+            if (this.idsAbiertasAll.indexOf(incidencia.id) === -1) {  
+              //console.log(this.prioridades[key].incidencias[clave]);
+              this.prioridades[key].incidencias.splice(clave, 1);
+            }
+          });
+        });
+      });
+    });
+  }
+  
   isAbierta(id) {
     return (this.idsAbiertasAll.indexOf(id) !== -1);
   }
