@@ -44,14 +44,15 @@ $colors: (
 
   // http://themehats.com/themes/jango/demos/default/component-colors.html
   white:    #FFFFFF,
-  black:    #000000,
+  yellow-0:     #FFF200,
+  
   regular:    #7F8C97,
   grey:     #EEEEEE,
   grey-1:     #F7F7F7,
   grey-2:     #677083,
   grey-3:     #7F8C97,
   grey-4:     #A0A6AB,
-  green:    #32C5D2,
+  green-0:    #32C5D2,
   green-1:    #52C9BA,
   green-2:    #5DC09C,
   green-3:    #84C68F,
@@ -60,15 +61,22 @@ $colors: (
   red-1:      #CD6262,
   red-2:      #E7505A,
   red-3:      #D05163,
-  orange:   #FF6B57,
+  das:        orange,
+  orange-0:   #FF6B57,
   green-yellow: #C8D046,
-  yellow:     #FFF200,
+  
   blue-1:     #5E9CD1,
   blue-2:     #5893DD,
   blue-3:     #57BFE1,
   blue-4:     #428DE4,
+  
 
+  brown-0:      #9D8B81,
+  brown-1:      #8A7F68,
+  brown-2:      #7A6A61,
+  brown-3:      #685E47,
 
+  black-0:      #000000,
 
   purple:   #7a6fbe,
   blue:    #2196f3,
@@ -76,11 +84,12 @@ $colors: (
   gris-light: #cacaca,
 
   light:      #f4f4f4,
-  dark:       #222,
+  dark:       #222222,
+  dark-0:     #2F353B,
+  dark-1:     #525E64,
 
   energy:     #f2b632,
 
-  
   tabInactive: rgba(255, 255, 255, 0.7),
 
   twitter:    #1da1f4,

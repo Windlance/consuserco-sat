@@ -42,12 +42,6 @@ page-incidencia-cerrar {
             .item-inner { border: 0; } 
         }
         .invalido {
-            /*
-            border-bottom: 1px solid color($colors, danger) !important;
-            .item-inner {
-                ion-label { color: color($colors, danger); }
-            }
-            */
             ion-label.form-error {
                 font-size: 12px;
                 margin: 14px 16px 0;

@@ -1,4 +1,3 @@
-
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { IonicPage, NavController, NavParams, ToastController} from 'ionic-angular';
 import { Storage } from '@ionic/storage';
@@ -15,6 +14,8 @@ declare var google;
 })
 export class IncidenciaPage {
 
+  debug: boolean = false;       // Debug flag
+
   @ViewChild('map') mapElement: ElementRef;
   map: any;
   marker = new google.maps.Marker;
@@ -24,7 +25,7 @@ export class IncidenciaPage {
   id: any;
   incidencia = {'id':'', 
     'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
-    'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':''
+    'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':null
   };
   full_direccion: string;
   estaCerrada: boolean = false;
@@ -35,11 +36,11 @@ export class IncidenciaPage {
   }
  
   ionViewDidLoad() {
-    //console.log('ionViewDidLoad IncidenciaPage');
+    this.consola('INCIDENCIA LOAD');
   }
 
   ionViewDidEnter() {
-    //console.log('ionViewDidEnter IncidenciaPage');
+    this.consola('INCIDENCIA ENTER');
     this.initMap();
 
     this.loadIncidencia();    // load incidencia in map
@@ -55,15 +56,16 @@ export class IncidenciaPage {
   }
 
   loadIncidencia() {
+    let scope = this;
+
     // Reset incidencia Object
-    this.incidencia = {'id':'', 
+    scope.incidencia = {'id':'', 
       'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
-      'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado': ''
+      'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':null
     };
 
-    let scope = this;
-    this.storage.ready().then(() => {
-      this.storage.get('incidencia-'+this.id).then((data) => {
+    scope.storage.ready().then(() => {
+      scope.storage.get('incidencia-'+scope.id).then((data) => {
         if (data != null) {
           scope.incidencia = JSON.parse(data);
           scope.estaCerrada = (scope.incidencia.estado == '4');
@@ -77,7 +79,7 @@ export class IncidenciaPage {
             info: scope.incidencia.establecimiento,
             id: scope.id
           });
-          this.marker = marker;
+          scope.marker = marker;
 
           // Center map in marker
           scope.map.panTo(position); 
@@ -87,23 +89,24 @@ export class IncidenciaPage {
   }
 
   loadIncidenciaWithGeocoding() {
+    let scope = this;
+
     // Reset incidencia Object
     this.incidencia = {'id':'', 
       'numeracion':'', 'establecimiento':'', 'maquina':{'modelo':'','fabricante':''}, 'direccion':'', 'poblacion':'', 'provincia':'', 'cp':'', 
-      'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado': ''
+      'horario':'', 'telefono':'', 'geo':{'longitud':null, 'latitud':null}, 'tipos':[], 'descripcion':'', 'prioridad':{'desc':'','val':'','marker':''}, 'estado':null
     };
 
-    let scope = this;
-    this.storage.ready().then(() => {
-      this.storage.get('incidencia-'+this.id).then((data) => {
+    scope.storage.ready().then(() => {
+      scope.storage.get('incidencia-'+scope.id).then((data) => {
         if (data != null) {
           scope.incidencia = JSON.parse(data);
           scope.estaCerrada = (scope.incidencia.estado == '4');
           scope.full_direccion = scope.incidencia.direccion+', '+scope.incidencia.cp+' '+scope.incidencia.poblacion+', '+scope.incidencia.provincia;
 
           if (scope.incidencia.geo.latitud == null) {       // Needs geocoding...
-            //console.log ('geocoding...');
-            this.geocoder.geocode({'address': scope.full_direccion}, function(results, status) {
+            //scope.consola ('geocoding...');
+            scope.geocoder.geocode({'address': scope.full_direccion}, function(results, status) {
               if (status === google.maps.GeocoderStatus.OK) {
                 let marker = new google.maps.Marker({
                   map: scope.map,
@@ -122,10 +125,10 @@ export class IncidenciaPage {
                 scope.storage.set('incidencia-'+scope.incidencia.id, JSON.stringify(scope.incidencia));
 
               } else if (status === google.maps.GeocoderStatus.ZERO_RESULTS) {
-                console.log('Geocode error: ' + status);
+                scope.consola('Geocode error: ' + status);
                 scope.showToast("Dirección no encontrada","warning");
               } else {
-                console.log('Geocode error: ' + status);
+                scope.consola('Geocode error: ' + status);
               }
 
             });
@@ -139,7 +142,7 @@ export class IncidenciaPage {
               info: scope.incidencia.establecimiento,
               id: scope.id
             });
-            this.marker = marker;
+            scope.marker = marker;
 
             // Center map in marker
             scope.map.panTo(position); 
@@ -163,19 +166,20 @@ export class IncidenciaPage {
   }
 
   comoLlegar(){
-    let app;
     let scope = this;
-    if (this.launchNavigator.isAppAvailable(this.launchNavigator.APP.GOOGLE_MAPS)) {
-      app = this.launchNavigator.APP.GOOGLE_MAPS;
+
+    let app;
+    if (scope.launchNavigator.isAppAvailable(scope.launchNavigator.APP.GOOGLE_MAPS)) {
+      app = scope.launchNavigator.APP.GOOGLE_MAPS;
     } else {
-      app = this.launchNavigator.APP.USER_SELECT;
+      app = scope.launchNavigator.APP.USER_SELECT;
     }
 
     let options: LaunchNavigatorOptions = {
       app: app
     };
-    this.launchNavigator.navigate([scope.incidencia.geo.latitud, scope.incidencia.geo.longitud], options);
-    //this.launchNavigator.navigate(this.full_direccion, options);
+    scope.launchNavigator.navigate([scope.incidencia.geo.latitud, scope.incidencia.geo.longitud], options);
+    //this.launchNavigator.navigate(scope.full_direccion, options);
   };
 
   showToast(mensaje, tipo){
@@ -185,5 +189,10 @@ export class IncidenciaPage {
       cssClass: tipo
     });
     toast.present();
+  }
+
+  consola(param){
+    if (this.debug)
+      console.log(param);
   }
 }

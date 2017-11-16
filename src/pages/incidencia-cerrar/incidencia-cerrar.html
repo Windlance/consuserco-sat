@@ -9,9 +9,9 @@
 
 <ion-content class="incidencia">
   <div padding class="border-bottom">
-    <p class="numeracion" text-center no-margin>{{numeracion}}</p>
-    <p class="establecimiento" text-center no-margin>{{establecimiento}}</p>
-    <p class="maquina" text-center no-margin>{{fabricante}} {{modelo}}</p>
+    <p class="numeracion" text-center no-margin>{{incidencia.numeracion}}</p>
+    <p class="establecimiento" text-center no-margin>{{incidencia.establecimiento}}</p>
+    <p class="maquina" text-center no-margin>{{incidencia.maquina.fabricante}} {{incidencia.maquina.modelo}}</p>
   </div>
 
   <ion-slides #signupSlider initialSlide=0>
