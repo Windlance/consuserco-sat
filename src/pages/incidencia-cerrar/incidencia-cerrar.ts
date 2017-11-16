@@ -7,8 +7,6 @@ import { Storage } from '@ionic/storage';
 
 import { SignaturePad } from 'angular2-signaturepad/signature-pad';
 
-//import { IncidenciasPage } from './../incidencias/incidencias';
-
 @IonicPage()
 @Component({
   selector: 'page-incidencia-cerrar',
@@ -16,7 +14,7 @@ import { SignaturePad } from 'angular2-signaturepad/signature-pad';
 })
 export class IncidenciaCerrarPage {
 
-  debug: boolean = true;       // Debug flag
+  debug: boolean = false;       // Debug flag
 
   id: any;
   incidencia = {'id':'', 
@@ -55,6 +53,7 @@ export class IncidenciaCerrarPage {
     scope.consola('CERRAR CONSTRUCTOR');
 
     scope.consola('    LOADING ... ');
+
     // Slide 1
     scope.slideOneForm = scope.formBuilder.group({
       observaciones: [''],
@@ -182,8 +181,7 @@ export class IncidenciaCerrarPage {
       promises.push(
         scope.storage.set('incidencia-'+scope.id, data)
         .then(() => {
-          //scope.consola('incidencia updated and saved in storage');
-          //scope.consola(scope.incidencia);
+          scope.consola('         Incidencia updated and saved in storage');
         })
       );
 

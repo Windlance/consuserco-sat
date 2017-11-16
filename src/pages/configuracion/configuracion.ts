@@ -13,21 +13,37 @@ import { Storage } from '@ionic/storage';
 })
 export class ConfiguracionPage {
 
+  debug: boolean = false;       // Debug flag
+
   userDetails = { "foto": '', "nombre": '', "apellidos": '', "ocupacion": ''};
+
+  firstLoad: boolean = true;
 
   constructor(public navCtrl: NavController, public app: App, 
               //public authService: AuthServiceProvider, 
               public actionSheetCtrl: ActionSheetController, public storage: Storage) {
+    this.consola('CONFIGURACION CONSTRUCTOR');
   }
 
   ionViewDidLoad() {
-    this.storage.get('_2_userData').then((data) => {
+    let scope = this;
+
+    scope.consola('CONFIGURACION LOAD');
+    scope.storage.get('_2_userData').then((data) => {
       if (data != null) {
         let campos =  JSON.parse(data);
-        this.userDetails = campos;
+        scope.userDetails = campos;
       }
     });
-    console.log('ionViewDidLoad ConfiguracionPage');
+  }
+
+  ionViewDidEnter() {
+    let scope = this;
+
+    scope.consola('INCIDENCIAS ENTER: firstLoad = '+scope.firstLoad);
+    if (!scope.firstLoad) {
+      
+    }
   }
  
   confirmLogout(){
@@ -35,15 +51,17 @@ export class ConfiguracionPage {
   }
 
   presentActionSheet() {
-    let actionSheet = this.actionSheetCtrl.create({
+    let scope = this;
+
+    let actionSheet = scope.actionSheetCtrl.create({
       title: '¿Seguro que quieres salir?',
       buttons: [
         {
           text: 'Salir',
           role: 'destructive',
           handler: () => {    // Hacemos logout
-            this.storage.clear();
-            this.app.getRootNav().setRoot(WelcomePage, '', { animate: false });
+            scope.storage.clear();
+            scope.app.getRootNav().setRoot(WelcomePage, '', { animate: false });
           }
         },{
           text: 'Cancelar',
@@ -54,5 +72,10 @@ export class ConfiguracionPage {
       ]
     });
     actionSheet.present();
+  }
+
+  consola(param){
+    if (this.debug)
+      console.log(param);
   }
 }

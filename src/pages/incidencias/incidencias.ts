@@ -46,7 +46,10 @@ export class IncidenciasPage {
 
     this.consola('INCIDENCIAS LOAD');
 
-    this.loadIncidenciasFromServer();
+    this.loadIncidenciasFromServer().then(() => {
+      
+    });
+    
   }
 
   ionViewDidEnter () {
@@ -59,96 +62,155 @@ export class IncidenciasPage {
   loadIncidenciasFromServer() {
     let scope = this;
 
-    scope.storage.ready().then(() => {
-      scope.storage.get('_1_sesionData').then((data) => {
-        if (data != null) {
-          scope.sesionData = JSON.parse(data);
-          //scope.consola(this.sesionData);
-          scope.authService.postData(scope.sesionData, 'abiertas').then((result) => {
-            scope.responseData = result;
-            //scope.consola(this.responseData);
-            let status = scope.responseData.status;
-            if (status == 'ok') {
-              // For each incidencia recevied from server ...
-              scope.responseData.incidencias.forEach(incidencia => {
-                // ... save each incidencia in the Storage
-                scope.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia));
-              });
-              // Save in Storage the array built with the incidencias ids grouped by preference
-              let _abiertas = { 'urgentes': scope.responseData.urgentes, 'altas': scope.responseData.altas, 'normales': scope.responseData.normales, 'bajas': scope.responseData.bajas };
-              scope.storage.set('_abiertas', JSON.stringify(_abiertas));
+    return new Promise ((resolve, reject) => {
+      scope.consola('    LOADING FROM SERVER ... ');
 
-              let _cerradas = [];
-              scope.storage.set('_cerradas', JSON.stringify(_cerradas));
+      scope.storage.ready().then(() => {
+        // Load sesion data from local storage
+        scope.storage.get('_1_sesionData').then((data) => {
+          if (data != null) {
+            scope.sesionData = JSON.parse(data);
+            scope.consola('        Loaded Sesion Data loaded');
 
-              scope.loadLocales();
+            scope.consola('        LOADING Abiertas from server');
+            // Retrieve abiertas from server
+            scope.authService.postData(scope.sesionData, 'abiertas').then((result) => {
+              scope.responseData = result;
+              let status = scope.responseData.status;
+              if (status == 'ok') {
+                scope.consola('        ... Abiertas loaded');
 
-              scope.firstLoad = false;
-            }
-            else {
-              scope.showToast(scope.responseData.error.text, "error");
-              scope.consola(scope.responseData.error);
-            }
-          }, (err) => {
-            scope.showToast("Error de conexion", "error");
-            scope.consola("Error de conexion");   // Connection failed message
-          });
-        }
+                scope.consola('        SAVING EACH to local Storage');
+                let promisesEach = [];
+                // For each incidencia recevied from server ...
+                scope.responseData.incidencias.forEach(incidencia => {
+                  // ... save each incidencia in the Storage
+                  promisesEach.push(
+                    scope.storage.set('incidencia-'+incidencia.id, JSON.stringify(incidencia)).then(() => {
+                      scope.consola('            incidencia-'+incidencia.id+' saved');
+                    })
+                  )
+                });
+                // When each saved... continue
+                Promise.all(promisesEach).then(() => {
+                  scope.consola('        SAVED EACH!');
+                  scope.consola('        SAVING ARRAY _abiertas to local Storage');
+                  // Save in Storage the array built with the incidencias ids grouped by preference
+                  let _abiertas = { 'urgentes': scope.responseData.urgentes, 'altas': scope.responseData.altas, 'normales': scope.responseData.normales, 'bajas': scope.responseData.bajas };
+                  let promiseAbiertas = scope.storage.set('_abiertas', JSON.stringify(_abiertas)).then(() => {
+                    scope.consola('        SAVED _abiertas!');
+                  });
+  
+                  scope.consola('        SAVING ARRAY _cerradas to local Storage (in paralell)');
+                  let _cerradas = [];
+                  let promiseCerradas = scope.storage.set('_cerradas', JSON.stringify(_cerradas)).then(() => {
+                    scope.consola('        SAVED _cerradas!');
+                  });
+
+                  // When _abiertas and _cerradas saved--- continue
+                  Promise.all([promiseAbiertas, promiseCerradas]).then(() => {
+                    scope.consola('    LOADED SERVER!');
+                    scope.loadLocales().then(() => {
+                      scope.firstLoad = false;
+                    });
+                  });
+                });
+              }
+              else {
+                scope.showToast(scope.responseData.error.text, "error");
+                scope.consola('        ... Abiertas NOT loaded --> ERROR: '+scope.responseData.error);
+              }
+
+            }, (err) => {
+              scope.showToast("Error de conexion", "error");
+              scope.consola('        CONEXION FAILED!');     // Connection failed message
+            });
+          }
+          else {
+            scope.consola('        No Sesion Data');
+            // redirect to login
+          }
+        });
       });
-    });
+
+    })
   }
 
   loadLocales(){
     let scope = this;
 
-    scope.storage.ready().then(() => {
-      // Load _abiertas from Storage 
-      scope.storage.get('_abiertas').then((arraysIds)=>{
-        scope.idsAbiertasGrouped = JSON.parse(arraysIds);
-        scope.idsAbiertasAll =  scope.idsAbiertasGrouped.urgentes.concat(scope.idsAbiertasGrouped.altas, scope.idsAbiertasGrouped.normales, scope.idsAbiertasGrouped.bajas);
-       
-        // load each record from Storage
-        scope.idsAbiertasAll.forEach( (value, key, index) => {
-          scope.storage.get('incidencia-'+value).then((data)=> {
-            let dataParsed = JSON.parse(data);
-            // update arrays
-            scope.prioridades[dataParsed.prioridad.val].incidencias.push(dataParsed); 
+    return new Promise ((resolve, reject) => {
+      scope.consola('    LOADING FROM STORAGE ... ');
+
+      scope.storage.ready().then(() => {
+        // Load _abiertas from Storage 
+        scope.storage.get('_abiertas').then((arraysIds)=>{
+          scope.idsAbiertasGrouped = JSON.parse(arraysIds);
+          scope.idsAbiertasAll =  scope.idsAbiertasGrouped.urgentes.concat(scope.idsAbiertasGrouped.altas, scope.idsAbiertasGrouped.normales, scope.idsAbiertasGrouped.bajas);
+        
+          let promises = [];
+          // load each record from Storage
+          scope.idsAbiertasAll.forEach( (value, key, index) => {
+            promises.push(
+                scope.storage.get('incidencia-'+value).then((data)=> {
+                  let dataParsed = JSON.parse(data);
+                  // update arrays
+                  scope.prioridades[dataParsed.prioridad.val].incidencias.push(dataParsed); 
+                  scope.consola('        incidencia-'+value+' loaded');
+                })
+            )
           });
+          // update booleans
+          scope.conAbiertas = (scope.idsAbiertasAll.length > 0);
+          scope.sinAbiertas = !(scope.conAbiertas);
+
+          Promise.all(promises).then(() => {
+            scope.consola('    LOADED!');
+            resolve();
+          })
         });
-        // update booleans
-        scope.conAbiertas = (scope.idsAbiertasAll.length > 0);
-        scope.sinAbiertas = !(scope.conAbiertas);
       });
-    });
+
+    })
   }
 
   updateLocales() {
     let scope = this;
 
-    scope.storage.ready().then(() => {
-      scope.storage.get('_abiertas').then((data)=>{
-        scope.idsAbiertasGrouped = JSON.parse(data);
-        scope.idsAbiertasAll =  scope.idsAbiertasGrouped.urgentes.concat(scope.idsAbiertasGrouped.altas, scope.idsAbiertasGrouped.normales, scope.idsAbiertasGrouped.bajas);
+    return new Promise ((resolve, reject) => {
+      scope.consola('    UPDATING FROM STORAGE ...');
 
-        scope.conAbiertas = (scope.idsAbiertasAll.length > 0);
-        scope.sinAbiertas = !(scope.conAbiertas);
-      }).then(() => {
-        let valids = [];
-        // Remove incidencias from its grouped array if not in idsAbiertasAll anymore => don't push deleted to valids
-        scope.prioridades.forEach((grupo, key, index) => {
-          grupo.incidencias.forEach((incidencia, clave, index) => {
-            // update arrays removing already closed incidencias (not in array idsAbiertasAll)
-            if (scope.idsAbiertasAll.indexOf(incidencia.id) === -1) {  
-              //scope.consola(this.prioridades[key].incidencias[clave]);
-              scope.prioridades[key].incidencias.splice(clave, 1);
-            }
-            else {
-              valids.push();    // CHEMAAAAAAAAAAAAAAAA
-            }
+      scope.storage.ready().then(() => {
+        scope.storage.get('_abiertas').then((data)=>{
+          scope.idsAbiertasGrouped = JSON.parse(data);
+          scope.idsAbiertasAll =  scope.idsAbiertasGrouped.urgentes.concat(scope.idsAbiertasGrouped.altas, scope.idsAbiertasGrouped.normales, scope.idsAbiertasGrouped.bajas);
+
+          scope.conAbiertas = (scope.idsAbiertasAll.length > 0);
+          scope.sinAbiertas = !(scope.conAbiertas);
+        }).then(() => {
+          let valids = [];
+          // Remove incidencias from its grouped array if not in idsAbiertasAll anymore => don't push deleted to valids
+          scope.prioridades.forEach((grupo, key, index) => {
+            valids[key] = [];
+            grupo.incidencias.forEach((incidencia, clave, index) => {
+              let flecha = '';
+              // update arrays removing already closed incidencias (not in array idsAbiertasAll)
+              if (scope.idsAbiertasAll.indexOf(incidencia.id) === -1) {  
+                scope.consola('            '+incidencia.id+' --> not valid! ↴');
+              }
+              else {
+                valids[key].push(incidencia);    
+              }
+            });
+            scope.consola("        ["+key+"] VALIDOS: "+valids[key].length+"/"+scope.prioridades[key].incidencias.length);
+            scope.prioridades[key].incidencias = valids[key];
           });
+          scope.consola('    UPDATED!');
+          resolve();
         });
       });
-    });
+
+    })
   }
   
   isAbierta(id) {

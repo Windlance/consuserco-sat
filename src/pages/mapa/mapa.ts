@@ -79,6 +79,7 @@ export class MapaPage {
 
   initMap() {
     let scope = this;
+    
     // Initialize the map
     scope.map = new google.maps.Map(this.mapElement.nativeElement, {
       zoom: 11, 
@@ -98,29 +99,31 @@ export class MapaPage {
   }
 
   loadLocales() {
+    let scope = this;
+
     return new Promise ((resolve, reject) => {
-      this.consola('    LOADING locales ... ');
-      this.storage.ready().then(() => {
+      scope.consola('    LOADING locales ... ');
+      scope.storage.ready().then(() => {
         // Load _abiertas from Storage 
-        this.storage.get('_abiertas').then((arraysIds)=>{
-          this.idsAbiertasGrouped = JSON.parse(arraysIds);
-          this.idsAbiertasAll =  this.idsAbiertasGrouped.urgentes.concat(this.idsAbiertasGrouped.altas, this.idsAbiertasGrouped.normales, this.idsAbiertasGrouped.bajas);
+        scope.storage.get('_abiertas').then((arraysIds)=>{
+          scope.idsAbiertasGrouped = JSON.parse(arraysIds);
+          scope.idsAbiertasAll =  scope.idsAbiertasGrouped.urgentes.concat(scope.idsAbiertasGrouped.altas, scope.idsAbiertasGrouped.normales, scope.idsAbiertasGrouped.bajas);
         
           // load each record from Storage
           let promises = [];
-          this.idsAbiertasAll.forEach( (value, key, index) => {
+          scope.idsAbiertasAll.forEach( (value, key, index) => {
             promises.push(
-              this.storage.get('incidencia-'+value).then((data)=> {
+              scope.storage.get('incidencia-'+value).then((data)=> {
                 let dataParsed = JSON.parse(data);
                 // update arrays
-                this.incidencias.push(dataParsed); 
-                this.consola('        Loaded '+dataParsed.id);
+                scope.incidencias.push(dataParsed); 
+                scope.consola('        Loaded '+dataParsed.id);
               })
             );
           });
           Promise.all(promises).then(() => {
-            this.firstLoad = false;
-            this.consola('    LOADED locales!');
+            scope.firstLoad = false;
+            scope.consola('    LOADED locales!');
             resolve();
           });
         });
@@ -129,24 +132,26 @@ export class MapaPage {
   }
 
   addMarcadores() {
+    let scope = this;
+
     return new Promise ((resolve, reject) => {
       let scope = this;
-      this.consola('    ADDING markers ... ');
+      scope.consola('    ADDING markers ... ');
 
       let promises = [];
-      this.incidencias.forEach(incidencia => {
+      scope.incidencias.forEach(incidencia => {
         promises.push(
           new Promise((resolve, reject) => {
             let position = new google.maps.LatLng({lat: incidencia.geo.latitud, lng: incidencia.geo.longitud}); 
             scope.addMarker(position, incidencia.prioridad.marker, incidencia.establecimiento, incidencia.id);  
-            this.consola('        Added '+incidencia.id);
+            scope.consola('        Added '+incidencia.id);
             resolve();
           })
         );
       });
       Promise.all(promises).then(() => {
-        this.firstLoad = false;
-        this.consola('    ADDED markers!');
+        scope.firstLoad = false;
+        scope.consola('    ADDED markers!');
         resolve();
       });
     });
@@ -158,9 +163,9 @@ export class MapaPage {
 
     // Add marker
     let marker = new google.maps.Marker({
-      map: this.map,
+      map: scope.map,
       position: posicion,
-      icon: this.iconBase + icon,
+      icon: scope.iconBase + icon,
       info: info,
       id: id
     });
@@ -198,8 +203,7 @@ export class MapaPage {
     });
 
     // Save marker in local array, to be able to clean it if we remove the incidencia
-    this.markers.push({ marker: marker, listenerClick: listenerClick });
-    // Ej: google.maps.event.removeListener(listenerClick)
+    scope.markers.push({ marker: marker, listenerClick: listenerClick });
   }
 
   /*
@@ -226,7 +230,6 @@ export class MapaPage {
             }
             else {
               valids.push(incidencia);
-              //scope.consola('        '+incidencia.id+'?');
             }
           });
           scope.consola("        VALIDOS: "+valids.length+"/"+scope.incidencias.length);

@@ -11,4 +11,8 @@ page-configuracion {
         }
     }
     ion-list.last { margin: -1px 0 12px;}
+
+    .action-sheet-group {
+        overflow: auto
+    }
 }
