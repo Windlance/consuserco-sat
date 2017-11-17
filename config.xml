@@ -91,8 +91,8 @@
         <variable name="LOCATION_USAGE_DESCRIPTION" value="This app requires access to your location for navigation purposes" />
     </plugin>
     <plugin name="cordova-plugin-googlemaps" spec="^2.1.1">
-        <variable name="API_KEY_FOR_ANDROID" value="AIzaSyAIsp-5ESBUL8cjf_txJsxa3zq9qgUarTI" />
-        <variable name="API_KEY_FOR_IOS" value="AIzaSyAIsp-5ESBUL8cjf_txJsxa3zq9qgUarTI" />
+        <variable name="API_KEY_FOR_ANDROID" value="" />
+        <variable name="API_KEY_FOR_IOS" value="" />
     </plugin>
     <plugin name="cordova-plugin-fcm" spec="^2.1.2" />
 </widget>
