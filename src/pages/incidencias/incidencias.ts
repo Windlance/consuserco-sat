@@ -193,7 +193,6 @@ export class IncidenciasPage {
           scope.prioridades.forEach((grupo, key, index) => {
             valids[key] = [];
             grupo.incidencias.forEach((incidencia, clave, index) => {
-              let flecha = '';
               // update arrays removing already closed incidencias (not in array idsAbiertasAll)
               if (scope.idsAbiertasAll.indexOf(incidencia.id) === -1) {  
                 scope.consola('            '+incidencia.id+' --> not valid! ↴');

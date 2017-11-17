@@ -79,7 +79,7 @@ export class MapaPage {
 
   initMap() {
     let scope = this;
-    
+
     // Initialize the map
     scope.map = new google.maps.Map(this.mapElement.nativeElement, {
       zoom: 11, 
@@ -135,7 +135,6 @@ export class MapaPage {
     let scope = this;
 
     return new Promise ((resolve, reject) => {
-      let scope = this;
       scope.consola('    ADDING markers ... ');
 
       let promises = [];

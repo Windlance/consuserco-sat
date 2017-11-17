@@ -11,8 +11,12 @@ page-configuracion {
         }
     }
     ion-list.last { margin: -1px 0 12px;}
+}
 
-    .action-sheet-group {
-        overflow: auto
-    }
+// Las action sheets se localizan fuera del DOM de la pagina
+.actionLogout .action-sheet-group {
+    overflow: auto;
+}
+.action-sheet-md .action-sheet-group:first-child {
+    padding-top: 0;
 }

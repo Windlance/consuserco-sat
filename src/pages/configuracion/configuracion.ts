@@ -54,6 +54,7 @@ export class ConfiguracionPage {
     let scope = this;
 
     let actionSheet = scope.actionSheetCtrl.create({
+      cssClass: 'actionLogout',
       title: '¿Seguro que quieres salir?',
       buttons: [
         {
